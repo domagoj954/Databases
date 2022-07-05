@@ -1,0 +1,268 @@
+create or replace NONEDITIONABLE PACKAGE BODY BIZNIS AS
+e_iznimka exception;
+
+
+--fanovi 
+
+  function f_check_fanovi(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) return boolean AS
+      l_obj JSON_OBJECT_T;
+      l_fanovi fanovi%rowtype;
+      l_count number;
+      l_id number;
+      l_string varchar2(1000);
+      l_search varchar2(100);
+      l_page number; 
+      l_perpage number;
+  BEGIN
+     l_obj := JSON_OBJECT_T(in_json);  
+     l_string := in_json.TO_STRING;
+  
+     SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.JMBAG'),
+        JSON_VALUE(l_string, '$.IME'),
+        JSON_VALUE(l_string, '$.PREZIME' ),
+        JSON_VALUE(l_string, '$.EMAIL' ),
+        JSON_VALUE(l_string, '$.PASSWORD' ),
+        JSON_VALUE(l_string, '$.SPOL' )
+   
+    INTO
+        l_fanovi.ID,
+        l_fanovi.JMBAG,
+        l_fanovi.IME,
+        l_fanovi.PREZIME,
+        l_fanovi.EMAIL,
+        l_fanovi.PASSWORD,
+        l_fanovi.SPOL
+    FROM 
+       dual; 
+    
+    
+    if (l_fanovi.JMBAG < 12344 or l_fanovi.JMBAG > 99999 ) then   
+       l_obj.put('h_message', 'Molimo unesite odgovarajuci JMBAG'); 
+       l_obj.put('h_errcode', 101);
+       raise e_iznimka;
+    end if;
+   
+    
+    if (nvl(l_fanovi.PASSWORD, 0) = 0) then   
+       l_obj.put('h_message', 'Molimo unesite OIB fana'); 
+       l_obj.put('h_errcode', 105);
+       raise e_iznimka;
+    end if;
+    
+
+
+  EXCEPTION
+     WHEN E_IZNIMKA THEN
+        return true;
+     WHEN OTHERS THEN
+      --  COMMON.p_errlog('p_check_fanovi',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+        l_obj.put('h_message', 'Dogodila se greška u obradi podataka!'); 
+        l_obj.put('h_errcode', 109);
+        out_json := l_obj;
+        return true;
+  END f_check_fanovi;
+
+
+------------------------------------------------------
+--stadion
+
+function f_check_stadion(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) return boolean AS
+      l_obj JSON_OBJECT_T;
+      l_stadion stadion%rowtype;
+      l_count number;
+      l_id number;
+      l_string varchar2(1000);
+      l_search varchar2(100);
+      l_page number; 
+      l_perpage number;
+  BEGIN
+     l_obj := JSON_OBJECT_T(in_json);  
+     l_string := in_json.TO_STRING;
+  
+     SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.IDklub'),
+        JSON_VALUE(l_string, '$.IME'),
+        JSON_VALUE(l_string, '$.KAPACITET' ),
+        JSON_VALUE(l_string, '$.ADRESA' )
+   
+    INTO
+        l_stadion.ID,
+        l_stadion.IDklub,
+        l_stadion.IME,
+        l_stadion.KAPACITET,
+        l_stadion.ADRESA
+      
+    FROM 
+       dual; 
+    
+    
+    if (l_stadion.KAPACITET < 10000) then   
+       l_obj.put('h_message', 'Nedovoljan kapacitet stadiona za top klub'); 
+       l_obj.put('h_errcode', 101);
+       raise e_iznimka;
+    end if;
+    
+
+
+  EXCEPTION
+     WHEN E_IZNIMKA THEN
+        return true;
+     WHEN OTHERS THEN
+      --  COMMON.p_errlog('p_check_stadion',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+        l_obj.put('h_message', 'Dogodila se greška u obradi podataka!'); 
+        l_obj.put('h_errcode', 109);
+        out_json := l_obj;
+        return true;
+  END f_check_stadion;
+  
+  
+--------------------------------------------------------------------------------
+--igraci
+function f_check_igraci(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) return boolean AS
+      l_obj JSON_OBJECT_T;
+      l_igraci igraci%rowtype;
+      l_count number;
+      l_id number;
+      l_string varchar2(1000);
+      l_search varchar2(100);
+      l_page number; 
+      l_perpage number;
+  BEGIN
+     l_obj := JSON_OBJECT_T(in_json);  
+     l_string := in_json.TO_STRING;
+  
+     SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.IDklub' ),
+        JSON_VALUE(l_string, '$.IDtrener'),
+        JSON_VALUE(l_string, '$.IDlige'),
+        JSON_VALUE(l_string, '$.IME' ),
+        JSON_VALUE(l_string, '$.PREZIME' ),
+        JSON_VALUE(l_string, '$.NACIONALNOST'),
+        JSON_VALUE(l_string, '$.GODINE'),
+        JSON_VALUE(l_string, '$.POZICIJA' ),
+        JSON_VALUE(l_string, '$.BROJ' ),
+        JSON_VALUE(l_string, '$.BROJ_GOLOVA'),
+        JSON_VALUE(l_string, '$.ODIGRANIH_UTAKMICA'),
+        JSON_VALUE(l_string, '$.VRIJEDNOST' )
+   
+    INTO
+        l_igraci.ID,
+        l_igraci.IDklub,
+        l_igraci.IDtrener,
+        l_igraci.IDlige,
+        l_igraci.IME,
+        l_igraci.PREZIME,
+        l_igraci.NACIONALNOST,
+        l_igraci.GODINE,
+        l_igraci.POZICIJA,
+        l_igraci.BROJ,
+        l_igraci.BROJ_GOLOVA,
+        l_igraci.ODIGRANIH_UTAKMICA,
+        l_igraci.VRIJEDNOST
+
+      
+    FROM 
+       dual; 
+    
+    
+    if (nvl(l_igraci.IDklub, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite IDklub igraca'); 
+       l_obj.put('h_errcode', 101);
+       raise e_iznimka;
+    end if;
+    
+    
+    if (nvl(l_igraci.IDtrener, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite IDtrener igraca'); 
+       l_obj.put('h_errcode', 102);
+       raise e_iznimka;
+    end if;
+    
+    if (nvl(l_igraci.IDlige, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite IDlige igraca'); 
+       l_obj.put('h_errcode', 103);
+       raise e_iznimka;
+    end if;
+
+    if (nvl(l_igraci.IME, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite ime igraca'); 
+       l_obj.put('h_errcode', 104);
+       raise e_iznimka;
+    end if;
+    
+    if (nvl(l_igraci.PREZIME, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite prezime igraca'); 
+       l_obj.put('h_errcode', 105);
+       raise e_iznimka;
+    end if;
+
+    if (nvl(l_igraci.NACIONALNOST, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite nacionalnost igraca'); 
+       l_obj.put('h_errcode', 106);
+       raise e_iznimka;
+    end if;
+    
+    if (nvl(l_igraci.GODINE, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite godine igraca'); 
+       l_obj.put('h_errcode', 107);
+       raise e_iznimka;
+    end if;
+    if (nvl(l_igraci.NACIONALNOST, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite nacionalnost igraca'); 
+       l_obj.put('h_errcode', 106);
+       raise e_iznimka;
+    end if;
+    
+    if (nvl(l_igraci.GODINE, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite godine igraca'); 
+       l_obj.put('h_errcode', 107);
+       raise e_iznimka;
+    end if;
+
+    if (nvl(l_igraci.POZICIJA, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite poziciju igraca'); 
+       l_obj.put('h_errcode', 108);
+       raise e_iznimka;
+    end if;
+    
+    if (nvl(l_igraci.BROJ, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite broj igraca'); 
+       l_obj.put('h_errcode', 109);
+       raise e_iznimka;
+    end if;
+
+    if (nvl(l_igraci.BROJ_GOLOVA, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite broj golova igraca'); 
+       l_obj.put('h_errcode', 110);
+       raise e_iznimka;
+    end if;
+
+    if (nvl(l_igraci.ODIGRANIH_UTAKMICA, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite broj odigranih utakmica igraca'); 
+       l_obj.put('h_errcode', 111);
+       raise e_iznimka;
+    end if;
+
+    if (nvl(l_igraci.VRIJEDNOST, ' ') = ' ') then   
+       l_obj.put('h_message', 'Molimo unesite VRIJEDNOST igraca'); 
+       l_obj.put('h_errcode', 112);
+       raise e_iznimka;
+    end if;
+  
+
+  EXCEPTION
+     WHEN E_IZNIMKA THEN
+        return true;
+     WHEN OTHERS THEN
+      --  COMMON.p_errlog('p_check_igraci',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+        l_obj.put('h_message', 'Dogodila se greška u obradi podataka!'); 
+        l_obj.put('h_errcode', 109);
+        out_json := l_obj;
+        return true;
+  END f_check_igraci;
+
+END BIZNIS;

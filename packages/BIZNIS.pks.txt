@@ -1,0 +1,8 @@
+create or replace NONEDITIONABLE PACKAGE BIZNIS AS 
+
+  function f_check_fanovi(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) return boolean;
+  function f_check_stadion(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) return boolean;
+  function f_check_predsjednik(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) return boolean;
+  function f_check_igraci(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) return boolean;
+
+END BIZNIS;

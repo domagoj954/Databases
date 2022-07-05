@@ -1,0 +1,9 @@
+create or replace NONEDITIONABLE PACKAGE PODACI AS 
+
+ procedure p_save_klijenti (in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T);
+ procedure p_save_klub (in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T);
+ procedure p_save_stadion (in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T);
+ procedure p_save_liga (in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T);
+ procedure p_save_trener (in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T);
+
+END PODACI;

@@ -1,0 +1,376 @@
+create or replace NONEDITIONABLE PACKAGE BODY DOHVAT AS
+e_iznimka exception;
+------------------------------------------------------------------------------------
+
+procedure p_get_fanovi(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) AS
+  l_obj JSON_OBJECT_T;
+  l_fanovi json_array_t :=JSON_ARRAY_T('[]');
+  l_count number;
+  l_id number;
+  l_string varchar2(1000);
+  l_search varchar2(100);
+  l_page number; 
+  l_perpage number; 
+ BEGIN
+    l_obj := JSON_OBJECT_T(in_json);
+    
+    l_string := in_json.TO_STRING; 
+    
+    SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.search'),
+        JSON_VALUE(l_string, '$.page' ),
+        JSON_VALUE(l_string, '$.perpage' )
+    INTO
+        l_id,
+        l_search,
+        l_page,
+        l_perpage
+    FROM 
+       dual;
+    
+    FOR x IN (
+            SELECT 
+               json_object('ID' VALUE ID, 
+                           'JMBAG' VALUE JMBAG,
+                           'IME' VALUE IME,
+                           'PREZIME' VALUE PREZIME,
+                           'EMAIL' VALUE EMAIL,
+                           'PASSWORD' VALUE PASSWORD,
+                           'SPOL' VALUE SPOL) as izlaz
+                          
+             FROM
+                fanovi
+             where
+                ID = nvl(l_id, ID) 
+            )
+        LOOP
+            l_fanovi.append(JSON_OBJECT_T(x.izlaz));
+        END LOOP;
+        
+    SELECT
+      count(1)
+    INTO
+       l_count
+    FROM 
+       fanovi
+    where
+        ID = nvl(l_id, ID) ;
+        
+    l_obj.put('count',l_count);
+    l_obj.put('data',l_fanovi);
+    out_json := l_obj;
+ EXCEPTION
+   WHEN OTHERS THEN
+       --common.p_errlog('p_get_stadion', dbms_utility.format_error_backtrace, sqlcode, sqlerrm, l_string);
+       l_obj.put('h_message', 'Greška u obradi podataka');
+       l_obj.put('h_errcode', 99);
+       ROLLBACK;    
+    
+  END p_get_fanovi;
+--------------------------------------------------------------------------------------
+--get_stadion
+
+  procedure p_get_stadion(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) AS
+  l_obj JSON_OBJECT_T;
+  l_stadion json_array_t :=JSON_ARRAY_T('[]');
+  l_count number;
+  l_id number;
+  l_string varchar2(1000);
+  l_search varchar2(100);
+  l_page number; 
+  l_perpage number; 
+ BEGIN
+    l_obj := JSON_OBJECT_T(in_json);
+    
+    l_string := in_json.TO_STRING; 
+    
+    SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.search'),
+        JSON_VALUE(l_string, '$.page' ),
+        JSON_VALUE(l_string, '$.perpage' )
+    INTO
+        l_id,
+        l_search,
+        l_page,
+        l_perpage
+    FROM 
+       dual;
+    
+    FOR x IN (
+            SELECT 
+               json_object('ID' VALUE ID, 
+                           'IDklub' VALUE IDklub,
+                           'IME' VALUE IME,
+                           'KAPACITET' VALUE KAPACITET,
+                           'ADRESA' VALUE ADRESA) as izlaz
+                          
+             FROM
+                stadion
+             where
+                ID = nvl(l_id, ID) 
+            )
+        LOOP
+            l_stadion.append(JSON_OBJECT_T(x.izlaz));
+        END LOOP;
+        
+    SELECT
+      count(1)
+    INTO
+       l_count
+    FROM 
+       stadion
+    where
+        ID = nvl(l_id, ID) ;
+        
+    l_obj.put('count',l_count);
+    l_obj.put('data',l_stadion);
+    out_json := l_obj;
+ EXCEPTION
+   WHEN OTHERS THEN
+       --common.p_errlog('p_get_stadion', dbms_utility.format_error_backtrace, sqlcode, sqlerrm, l_string);
+       l_obj.put('h_message', 'Greška u obradi podataka');
+       l_obj.put('h_errcode', 99);
+       ROLLBACK;    
+    
+  END p_get_stadion;
+  
+  
+ -----------------------------------------------------------------------
+ --get_predsjednik
+
+  procedure p_get_predsjednik(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) AS
+  l_obj JSON_OBJECT_T;
+  l_predsjednik json_array_t :=JSON_ARRAY_T('[]');
+  l_count number;
+  l_id number;
+  l_string varchar2(1000);
+  l_search varchar2(100);
+  l_page number; 
+  l_perpage number; 
+ BEGIN
+    l_obj := JSON_OBJECT_T(in_json);
+    
+    l_string := in_json.TO_STRING; 
+    
+    SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.search'),
+        JSON_VALUE(l_string, '$.page' ),
+        JSON_VALUE(l_string, '$.perpage' )
+    INTO
+        l_id,
+        l_search,
+        l_page,
+        l_perpage
+    FROM 
+       dual;
+    
+    FOR x IN (
+            SELECT 
+               json_object('ID' VALUE ID, 
+                           'IDklub' VALUE IDklub,
+                           'IME' VALUE IME,
+                           'PREZIME' VALUE PREZIME) as izlaz
+                          
+             FROM
+                predsjednik
+             where
+                ID = nvl(l_id, ID) 
+            )
+        LOOP
+            l_predsjednik.append(JSON_OBJECT_T(x.izlaz));
+        END LOOP;
+        
+    SELECT
+      count(1)
+    INTO
+       l_count
+    FROM 
+       predsjednik
+    where
+        ID = nvl(l_id, ID) ;
+        
+    l_obj.put('count',l_count);
+    l_obj.put('data',l_predsjednik);
+    out_json := l_obj;
+ EXCEPTION
+   WHEN OTHERS THEN
+      -- common.p_errlog('p_get_stadion', dbms_utility.format_error_backtrace, sqlcode, sqlerrm, l_string);
+       l_obj.put('h_message', 'Greška u obradi podataka');
+       l_obj.put('h_errcode', 99);
+       ROLLBACK;    
+    
+  END p_get_predsjednik;
+  
+  
+  
+  
+    
+ -----------------------------------------------------------------------
+ --get_IGRACI
+
+  procedure p_get_igraci(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) AS
+  l_obj JSON_OBJECT_T;
+  l_igraci json_array_t :=JSON_ARRAY_T('[]');
+  l_count number;
+  l_id number;
+  l_string varchar2(1000);
+  l_search varchar2(100);
+  l_page number; 
+  l_perpage number; 
+ BEGIN
+    l_obj := JSON_OBJECT_T(in_json);
+    
+    l_string := in_json.TO_STRING; 
+    
+    SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.search'),
+        JSON_VALUE(l_string, '$.page' ),
+        JSON_VALUE(l_string, '$.perpage' )
+    INTO
+        l_id,
+        l_search,
+        l_page,
+        l_perpage
+    FROM 
+       dual;
+    
+    FOR x IN (
+            SELECT 
+               json_object('ID' VALUE ID, 
+                           'IDklub' VALUE IDklub,
+                           'IDtrener' VALUE IDtrener,
+                           'IDlige' VALUE IDlige,
+                           'IME' VALUE IME, 
+                           'PREZIME' VALUE PREZIME,
+                           'NACIONALNOST' VALUE NACIONALNOST,
+                           'GODINE' VALUE GODINE, 
+                           'POZICIJA' VALUE POZICIJA,
+                           'BROJ' VALUE BROJ,
+                           'BROJ_GOLOVA' VALUE BROJ_GOLOVA,
+                           'ODIGRANIH_UTAKMICA' VALUE ODIGRANIH_UTAKMICA, 
+                           'VRIJEDNOST' VALUE VRIJEDNOST) as izlaz
+                          
+             FROM
+                igraci
+             where
+                ID = nvl(l_id, ID) 
+            )
+        LOOP
+            l_igraci.append(JSON_OBJECT_T(x.izlaz));
+        END LOOP;
+        
+    SELECT
+      count(1)
+    INTO
+       l_count
+    FROM 
+      igraci
+    where
+        ID = nvl(l_id, ID) ;
+        
+    l_obj.put('count',l_count);
+    l_obj.put('data',l_igraci);
+    out_json := l_obj;
+ EXCEPTION
+   WHEN OTHERS THEN
+     --  common.p_errlog('p_get_igraci', dbms_utility.format_error_backtrace, sqlcode, sqlerrm, l_string);
+       l_obj.put('h_message', 'Greška u obradi podataka');
+       l_obj.put('h_errcode', 99);
+       ROLLBACK;    
+    
+  END p_get_igraci;
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+------------------------------------------------------------------------------------
+--login
+ PROCEDURE p_login(in_json in json_object_t, out_json out json_object_t )AS
+    l_obj        json_object_t := json_object_t();
+    l_input      VARCHAR2(4000);
+    l_record     VARCHAR2(4000);
+    l_username   fanovi.email%TYPE;
+    l_password   fanovi.password%TYPE;
+    l_id         fanovi.id%TYPE;
+    l_out        json_array_t := json_array_t('[]');
+ BEGIN
+    l_obj.put('h_message', '');
+    --l_obj.put('h_errcode', '');
+    l_input := in_json.to_string;
+    SELECT
+        JSON_VALUE(l_input, '$.username' RETURNING VARCHAR2),
+        JSON_VALUE(l_input, '$.password' RETURNING VARCHAR2)
+    INTO
+        l_username,
+        l_password
+    FROM
+        dual;
+            
+    IF (l_username IS NULL OR l_password is NULL) THEN
+       l_obj.put('h_message', 'Molimo unesite korisničko ime i zaporku');
+       l_obj.put('h_errcod', 101);
+       RAISE e_iznimka;
+    ELSE
+       BEGIN
+          SELECT
+             id
+          INTO 
+             l_id
+          FROM
+             fanovi
+          WHERE
+             email = l_username AND 
+             password = l_password;
+       EXCEPTION
+             WHEN no_data_found THEN
+                l_obj.put('h_message', 'Nepoznato korisničko ime ili zaporka');
+                l_obj.put('h_errcod', 102);
+                RAISE e_iznimka;
+             WHEN OTHERS THEN
+                RAISE;
+       END;
+
+       SELECT
+          JSON_OBJECT( 
+             'ID' VALUE fan.id, 
+             'JMBAG' VALUE fan.JMBAG, 
+             'IME' VALUE fan.ime, 
+             'PREZIME' VALUE fan.prezime, 
+             'EMAIL' VALUE fan.email, 
+             'PASSWORD' VALUE fan.password, 
+             'SPOL' VALUE fan.spol)
+       INTO 
+          l_record
+       FROM
+          fanovi fan
+       WHERE
+          id = l_id;
+
+    END IF;
+
+    l_out.append(json_object_t(l_record));
+    l_obj.put('data', l_out);
+    out_json := l_obj;
+ EXCEPTION
+    WHEN e_iznimka THEN
+       out_json := l_obj; 
+    WHEN OTHERS THEN
+      -- common.p_errlog('p_users_upd', dbms_utility.format_error_backtrace, sqlcode, sqlerrm, l_input);
+       l_obj.put('h_message', 'Greška u obradi podataka');
+       l_obj.put('h_errcode', 99);
+       ROLLBACK;
+ END p_login;
+
+END DOHVAT;
+
+

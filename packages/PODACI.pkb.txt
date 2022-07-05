@@ -1,0 +1,538 @@
+create or replace NONEDITIONABLE PACKAGE BODY SPREMI AS
+e_iznimka exception;
+--save_fanovi
+-----------------------------------------------------------------------------------------
+  procedure p_save_fanovi(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) AS
+      l_obj JSON_OBJECT_T;
+      l_fanovi fanovi%rowtype;
+      l_count number;
+      l_id number;
+      l_string varchar2(1000);
+      l_search varchar2(100);
+      l_page number; 
+      l_perpage number;
+      l_action varchar2(10);
+  begin
+  
+     l_obj := JSON_OBJECT_T(in_json);  
+     l_string := in_json.TO_STRING;
+  
+     SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.JMBAG'),
+        JSON_VALUE(l_string, '$.IME' ),
+        JSON_VALUE(l_string, '$.PREZIME' ),
+        JSON_VALUE(l_string, '$.EMAIL' ),
+        JSON_VALUE(l_string, '$.PASSWORD' ),
+        JSON_VALUE(l_string, '$.SPOL' )
+    INTO
+        l_fanovi.id,
+        l_fanovi.JMBAG,
+        l_fanovi.IME,
+        l_fanovi.PREZIME,
+        l_fanovi.EMAIL,
+        l_fanovi.PASSWORD,
+        l_fanovi.SPOL,
+        l_action
+    FROM 
+       dual; 
+       
+    --FE kontrole
+    if (nvl(l_action, ' ') = ' ') then
+        if (filter.f_check_fanovi(l_obj, out_json)) then
+           raise e_iznimka; 
+        end if;  
+    end if;
+           
+    if (l_fanovi.id is null) then
+        begin
+           insert into fanovi(JMBAG, IME, PREZIME, EMAIL, PASSWORD, SPOL) values
+             (l_fanovi.JMBAG, l_fanovi.IME,
+              l_fanovi.PREZIME, l_fanovi.EMAIL, l_fanovi.PASSWORD,
+              l_fanovi.SPOL);
+           commit;
+           
+           l_obj.put('h_message', 'Uspješno ste unijeli novog fana'); 
+           l_obj.put('h_errcode', 0);
+           out_json := l_obj;
+           
+        exception
+           when others then 
+               COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+               rollback;
+               raise;
+        end;
+    else
+       if (nvl(l_action, ' ') = 'delete') then
+           begin
+               delete fanovi where id = l_fanovi.id;
+               commit;    
+               
+               l_obj.put('h_message', 'Uspješno ste obrisali klijenta'); 
+               l_obj.put('h_errcode', 0);
+               out_json := l_obj;
+            exception
+               when others then 
+                   COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+                   rollback;
+                   raise;
+            end;
+       
+       else
+       
+           begin
+               update fanovi 
+                  set JMBAG = l_fanovi.JMBAG,
+                      IME = l_fanovi.IME,
+                      PREZIME = l_fanovi.PREZIME,
+                      EMAIL = l_fanovi.EMAIL,
+                      PASSWORD = l_fanovi.PASSWORD, 
+                      SPOL = l_fanovi.SPOL
+               where
+                  id = l_fanovi.id;
+               commit;    
+               
+               l_obj.put('h_message', 'Uspješno ste promijenili fana'); 
+               l_obj.put('h_errcode', 0);
+               out_json := l_obj;
+            exception
+               when others then 
+                   COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+                   rollback;
+                   raise;
+            end;
+       end if;     
+    end if;
+    
+    
+  exception
+     when e_iznimka then
+        out_json := l_obj; 
+     when others then
+        COMMON.p_errlog('p_save_fanovi',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+        l_obj.put('h_message', 'Dogodila se greška!'); 
+        l_obj.put('h_errcode', 101);
+        out_json := l_obj;
+  END p_save_fanovi;
+
+---------------------------------------------------------------------
+
+  procedure p_save_klub(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) AS
+      l_obj JSON_OBJECT_T;
+      l_klub klub%rowtype;
+      l_count number;
+      l_id number;
+      l_string varchar2(1000);
+      l_search varchar2(100);
+      l_page number; 
+      l_perpage number;
+      l_action varchar2(10);
+  begin
+  
+     l_obj := JSON_OBJECT_T(in_json);  
+     l_string := in_json.TO_STRING;
+  
+     SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.IDfan'),
+        JSON_VALUE(l_string, '$.klub' ),
+    INTO
+        l_klub.id,
+        l_klub.idfan,
+        l_klub.klub,
+    FROM 
+       dual; 
+       
+    --FE kontrole
+    if (nvl(l_action, ' ') = ' ') then
+        if (filter.f_check_klub(l_obj, out_json)) then
+           raise e_iznimka; 
+        end if;  
+    end if;
+           
+    if (l_klub.id is null) then
+        begin
+           insert into klub(IDfan, klub) values
+             (l_klub.IDfan, l_klub.klub);
+           commit;
+           
+           l_obj.put('h_message', 'Uspješno ste unijeli novoi klub'); 
+           l_obj.put('h_errcode', 0);
+           out_json := l_obj;
+           
+        exception
+           when others then 
+               COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+               rollback;
+               raise;
+        end;
+    else
+       if (nvl(l_action, ' ') = 'delete') then
+           begin
+               delete klub where id = l_klub.id;
+               commit;    
+               
+               l_obj.put('h_message', 'Uspješno ste obrisali klub'); 
+               l_obj.put('h_errcode', 0);
+               out_json := l_obj;
+            exception
+               when others then 
+                   COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+                   rollback;
+                   raise;
+            end;
+       
+       else
+       
+           begin
+               update klub 
+                  set IDfan = l_klub.IDfan,
+                      klub = l_klub.klub,
+        
+               where
+                  id = l_klub.id;
+               commit;    
+               
+               l_obj.put('h_message', 'Uspješno ste promijenili klub'); 
+               l_obj.put('h_errcode', 0);
+               out_json := l_obj;
+            exception
+               when others then 
+                   COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+                   rollback;
+                   raise;
+            end;
+       end if;     
+    end if;
+    
+    
+  exception
+     when e_iznimka then
+        out_json := l_obj; 
+     when others then
+        COMMON.p_errlog('p_save_klub',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+        l_obj.put('h_message', 'Dogodila se greška!'); 
+        l_obj.put('h_errcode', 101);
+        out_json := l_obj;
+  END p_save_klub;
+
+  ----------------------------------------------------------------------------------------
+
+  procedure p_save_stadion(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) AS
+      l_obj JSON_OBJECT_T;
+      l_stadion stadion%rowtype;
+      l_count number;
+      l_id number;
+      l_string varchar2(1000);
+      l_search varchar2(100);
+      l_page number; 
+      l_perpage number;
+      l_action varchar2(10);
+  begin
+  
+     l_obj := JSON_OBJECT_T(in_json);  
+     l_string := in_json.TO_STRING;
+  
+     SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.IDklub'),
+        JSON_VALUE(l_string, '$.ime' ),
+        JSON_VALUE(l_string, '$.kapacitet' ),
+        JSON_VALUE(l_string, '$.adresa' )
+    INTO
+        l_stadion.id,
+        l_stadion.idklub,
+        l_stadion.ime,
+        l_stadion.kapacitet,
+        l_stadion.adresa,
+    FROM 
+       dual; 
+       
+    --FE kontrole
+    if (nvl(l_action, ' ') = ' ') then
+        if (filter.f_check_stadion(l_obj, out_json)) then
+           raise e_iznimka; 
+        end if;  
+    end if;
+           
+    if (l_stadion.id is null) then
+        begin
+           insert into stadion(IDklub, ime, kapacitet, adresa) values
+             (l_stadion.IDfan, l_stadion.ime, l_stadion.kapacitet, l_stadion.adresa);
+           commit;
+           
+           l_obj.put('h_message', 'Uspješno ste unijeli novi stadion'); 
+           l_obj.put('h_errcode', 0);
+           out_json := l_obj;
+           
+        exception
+           when others then 
+               COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+               rollback;
+               raise;
+        end;
+    else
+       if (nvl(l_action, ' ') = 'delete') then
+           begin
+               delete stadion where id = l_stadion.id;
+               commit;    
+               
+               l_obj.put('h_message', 'Uspješno ste obrisali stadion'); 
+               l_obj.put('h_errcode', 0);
+               out_json := l_obj;
+            exception
+               when others then 
+                   COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+                   rollback;
+                   raise;
+            end;
+       
+       else
+       
+           begin
+               update stadion 
+                  set IDklub = l_stadion.IDklub,
+                      ime = l_stadion.ime,
+                      kapacitet = l_stadion.kapacitet,
+                      adresa = l_adresa
+               where
+                  id = l_stadion.id;
+               commit;    
+               
+               l_obj.put('h_message', 'Uspješno ste promijenili stadion'); 
+               l_obj.put('h_errcode', 0);
+               out_json := l_obj;
+            exception
+               when others then 
+                   COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+                   rollback;
+                   raise;
+            end;
+       end if;     
+    end if;
+    
+    
+  exception
+     when e_iznimka then
+        out_json := l_obj; 
+     when others then
+        COMMON.p_errlog('p_save_stadion',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+        l_obj.put('h_message', 'Dogodila se greška!'); 
+        l_obj.put('h_errcode', 101);
+        out_json := l_obj;
+  END p_save_stadion;
+
+
+  
+---------------------------------------------------------------------------------
+
+procedure p_save_liga(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) AS
+      l_obj JSON_OBJECT_T;
+      l_liga liga%rowtype;
+      l_count number;
+      l_id number;
+      l_string varchar2(1000);
+      l_search varchar2(100);
+      l_page number; 
+      l_perpage number;
+      l_action varchar2(10);
+  begin
+  
+     l_obj := JSON_OBJECT_T(in_json);  
+     l_string := in_json.TO_STRING;
+  
+     SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.IDklub'),
+        JSON_VALUE(l_string, '$.naziv_lige' ),
+        JSON_VALUE(l_string, '$.ostale_lige' ),
+        JSON_VALUE(l_string, '$.drzava' )
+    INTO
+        l_liga.id,
+        l_liga.idklub,
+        l_liga.naziv_lige,
+        l_liga.ostale_lige,
+        l_liga.drzava,
+    FROM 
+       dual; 
+       
+    --FE kontrole
+    if (nvl(l_action, ' ') = ' ') then
+        if (filter.f_check_liga(l_obj, out_json)) then
+           raise e_iznimka; 
+        end if;  
+    end if;
+           
+    if (l_liga.id is null) then
+        begin
+           insert into liga(IDklub, naziv_lige, ostale_lige, drzava) values
+             (l_liga.IDklub, l_liga.naziv_lige, l_liga.ostale_lige, l_liga.drzava);
+           commit;
+           
+           l_obj.put('h_message', 'Uspješno ste unijeli novu ligu'); 
+           l_obj.put('h_errcode', 0);
+           out_json := l_obj;
+           
+        exception
+           when others then 
+               COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+               rollback;
+               raise;
+        end;
+    else
+       if (nvl(l_action, ' ') = 'delete') then
+           begin
+               delete liga where id = l_liga.id;
+               commit;    
+               
+               l_obj.put('h_message', 'Uspješno ste obrisali liga'); 
+               l_obj.put('h_errcode', 0);
+               out_json := l_obj;
+            exception
+               when others then 
+                   COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+                   rollback;
+                   raise;
+            end;
+       
+       else
+       
+           begin
+               update liga 
+                  set IDklub = l_liga.IDklub,
+                      naziv_lige = l_liga.naziv_lige,
+                      ostale_lige = l_liga.ostale_lige
+                      drzava = l_drzava
+               where
+                  id = l_liga.id;
+               commit;    
+               
+               l_obj.put('h_message', 'Uspješno ste promijenili ligu'); 
+               l_obj.put('h_errcode', 0);
+               out_json := l_obj;
+            exception
+               when others then 
+                   COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+                   rollback;
+                   raise;
+            end;
+       end if;     
+    end if;
+    
+    
+  exception
+     when e_iznimka then
+        out_json := l_obj; 
+     when others then
+        COMMON.p_errlog('p_save_liga',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+        l_obj.put('h_message', 'Dogodila se greška!'); 
+        l_obj.put('h_errcode', 101);
+        out_json := l_obj;
+  END p_save_liga;
+
+  -----------------------------------------------------------------------
+
+  procedure p_save_predsjednik(in_json in JSON_OBJECT_T, out_json out JSON_OBJECT_T) AS
+      l_obj JSON_OBJECT_T;
+      l_predsjednik predsjednik%rowtype;
+      l_count number;
+      l_id number;
+      l_string varchar2(1000);
+      l_search varchar2(100);
+      l_page number; 
+      l_perpage number;
+      l_action varchar2(10);
+  begin
+  
+     l_obj := JSON_OBJECT_T(in_json);  
+     l_string := in_json.TO_STRING;
+  
+     SELECT
+        JSON_VALUE(l_string, '$.ID' ),
+        JSON_VALUE(l_string, '$.IDklub'),
+        JSON_VALUE(l_string, '$.naziv_lige' ),
+        JSON_VALUE(l_string, '$.ostale_lige' ),
+        JSON_VALUE(l_string, '$.drzava' )
+    INTO
+        l_predsjednik.id,
+        l_predsjednik.idklub,
+        l_predsjednik.ime,
+        l_predsjednik.prezime,
+  
+    FROM 
+       dual; 
+       
+    --FE kontrole
+    if (nvl(l_action, ' ') = ' ') then
+        if (filter.f_check_predsjednik(l_obj, out_json)) then
+           raise e_iznimka; 
+        end if;  
+    end if;
+           
+    if (l_predsjednik.id is null) then
+        begin
+           insert into predsjednik(IDklub, ime, prezime) values
+             (l_predsjednik.IDklub, l_predsjednik.ime, l_predsjednik.prezime);
+           commit;
+           
+           l_obj.put('h_message', 'Uspješno ste unijeli novog predsjednika'); 
+           l_obj.put('h_errcode', 0);
+           out_json := l_obj;
+           
+        exception
+           when others then 
+               COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+               rollback;
+               raise;
+        end;
+    else
+       if (nvl(l_action, ' ') = 'delete') then
+           begin
+               delete predsjednik where id = l_predsjednik.id;
+               commit;    
+               
+               l_obj.put('h_message', 'Uspješno ste obrisali predsjednika'); 
+               l_obj.put('h_errcode', 0);
+               out_json := l_obj;
+            exception
+               when others then 
+                   COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+                   rollback;
+                   raise;
+            end;
+       
+       else
+       
+           begin
+               update predsjednik 
+                  set IDklub = l_predsjednik.IDklub,
+                      ime = l_predsjednik.ime,
+                      prezime = l_predsjednik.prezime
+               where
+                  id = l_predsjednik.id;
+               commit;    
+               
+               l_obj.put('h_message', 'Uspješno ste promijenili predsjednika'); 
+               l_obj.put('h_errcode', 0);
+               out_json := l_obj;
+            exception
+               when others then 
+                   COMMON.p_errlog('p_users',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+                   rollback;
+                   raise;
+            end;
+       end if;     
+    end if;
+    
+    
+  exception
+     when e_iznimka then
+        out_json := l_obj; 
+     when others then
+        COMMON.p_errlog('p_save_predsjednik',dbms_utility.format_error_backtrace,SQLCODE,SQLERRM, l_string);
+        l_obj.put('h_message', 'Dogodila se greška!'); 
+        l_obj.put('h_errcode', 101);
+        out_json := l_obj;
+  END p_save_predsjednik;
+  
+END PODACI;
